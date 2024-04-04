@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Калькулятор калорий</title>
+</head>
+<body>
+    <h1>Калькулятор калорий</h1>
+    <div id="ingredients">
+    </div>
+    <button onclick="addIngredient()">Добавить ингредиент</button>
+    <hr>
+    <h2>Сумма калорий:</h2>
+    <div id="totalCalories"></div>
+
+    <script>
+        async function calculateCalories(name, weight) {
+            const response = await fetch(`/calculate/?name=${name}&weight=${weight}`);
+            const data = await response.json();
+            return data.calories;
+        }
+
+        async function updateTotalCalories() {
+            let total = 0;
+            const ingredientRows = document.querySelectorAll('.ingredientRow');
+            for (const row of ingredientRows) {
+                const nameInput = row.querySelector('.nameInput');
+                const weightInput = row.querySelector('.weightInput');
+                const name = nameInput.value;
+                const weight = parseFloat(weightInput.value);
+                if (name && weight) {
+                    const calories = await calculateCalories(name, weight);
+                    total += calories;
+                }
+            }
+            document.getElementById('totalCalories').innerText = `Всего калорий: ${total}`;
+        }
+
+        function addIngredient() {
+            const container = document.getElementById('ingredients');
+            if (container.children.length >= 100) {
+                alert('Превышено максимальное количество ингредиентов');
+                return;
+            }
+
+            const row = document.createElement('div');
+            row.classList.add('ingredientRow');
+
+            const nameLabel = document.createElement('label');
+            nameLabel.innerText = 'Ингредиент: ';
+            row.appendChild(nameLabel);
+
+            const nameInput = document.createElement('input');
+            nameInput.classList.add('nameInput');
+            row.appendChild(nameInput);
+
+            const weightLabel = document.createElement('label');
+            weightLabel.innerText = ' Вес (г): ';
+            row.appendChild(weightLabel);
+
+            const weightInput = document.createElement('input');
+            weightInput.classList.add('weightInput');
+            row.appendChild(weightInput);
+
+            const caloriesLabel = document.createElement('label');
+            caloriesLabel.innerText = ' Калории: ';
+            row.appendChild(caloriesLabel);
+
+            const caloriesOutput = document.createElement('span');
+            caloriesOutput.classList.add('caloriesOutput');
+            row.appendChild(caloriesOutput);
+
+            nameInput.addEventListener('input', async () => {
+                const calories = await calculateCalories(nameInput.value, parseFloat(weightInput.value));
+                caloriesOutput.innerText = calories;
+                updateTotalCalories();
+            });
+
+            weightInput.addEventListener('input', async () => {
+                const calories = await calculateCalories(nameInput.value, parseFloat(weightInput.value));
+                caloriesOutput.innerText = calories;
+                updateTotalCalories();
+            });
+
+            container.appendChild(row);
+        }
+
+        addIngredient();
+    </script>
+</body>
+</html>
